@@ -1,0 +1,75 @@
+    public void modificarConsumo(ArrayList datos) throws SQLException {
+        String sql = "";
+        String fecha = (String) datos.get(0);
+        System.out.println(fecha);
+        for (int i = 1; i < datos.size(); i = i + 3) {
+            int cod = Integer.parseInt((String) datos.get(i));
+            double cant = 0;
+            if ((String) datos.get(i + 2) == null) {
+                cant = 0;
+            } else {
+                cant = Double.parseDouble((String) datos.get(i + 2));
+            }
+            System.out.println(cod);
+            System.out.println(cant);
+            pt = con.prepareStatement("UPDATE proyecto_agua.consumo SET cantidad = " + cant + " where fecha =  ('" + fecha + "') and socio_idsocio = (" + cod + " );");
+            pt.executeUpdate();
+        }
+
+    }
+
+    public ArrayList obtenerPagoConsumo(int id, int mes, int anio) throws SQLException {
+        ArrayList<Object> datos = new ArrayList<>();
+        int mesAnterior = mes - 1;
+        int anioAnterior = anio;
+        String cactual = "0", canterior = "0";
+        double totalSoloConsumo = 0.0;
+        double excesoConsumo = 0;
+        double totalConsumo = 0;
+        if (mes == 1) {
+            mesAnterior = 12;
+            anioAnterior = anio - 1;
+
+        }
+        st = con.createStatement();
+        rs = st.executeQuery("SELECT cantidad FROM proyecto_agua.consumo where MONTH(fecha) = " + mesAnterior + " and YEAR(fecha) = " + anioAnterior + " and   consumo.socio_idsocio = " + id + ";");
+        while (rs.next()) {
+            canterior = rs.getString(1);
+            datos.add(canterior);
+
+        }
+        st = con.createStatement();
+        rs = st.executeQuery("SELECT cantidad FROM proyecto_agua.consumo WHERE MONTH(fecha) = " + mes + " and YEAR(fecha) = " + anio + " and  consumo.socio_idsocio = " + id + ";");
+        while (rs.next()) {
+            cactual = rs.getString(1);
+            datos.add(cactual);
+
+        }
+        for (int i = 0; i < datos.size(); i++) {
+            System.out.println(datos.get(i));
+        }
+
+        double difConsumo = Double.parseDouble(cactual) - Double.parseDouble(canterior);
+        System.out.println("ESTO ESTA CONSUMIENDO " +  difConsumo);
+        datos.add(difConsumo);
+        System.out.println("PRECIO DE EXCESO" + multaExceso);
+        if (difConsumo <= metrosBase) {
+            totalSoloConsumo = cantidadMetrosBase;
+
+        } else {
+            totalSoloConsumo = cantidadMetrosBase;
+            for (int i = metrosBase; i < difConsumo; i++) {
+                excesoConsumo += multaExceso;
+                excesoConsumo = Math.round(excesoConsumo * 100)/100d;
+                System.out.println("VALOR QUE SUMA " + excesoConsumo);
+            }
+            System.out.println("EXCESO DE CONSUMO: " + excesoConsumo);
+
+        }
+        datos.add(totalSoloConsumo);
+        datos.add(excesoConsumo);
+        totalConsumo = totalSoloConsumo + excesoConsumo;
+        datos.add(totalConsumo);
+        return datos;
+
+    }

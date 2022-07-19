@@ -1,0 +1,2 @@
+Agregación se representa con la relación de inclusión.
+Relación de representa con referencia
